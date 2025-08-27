@@ -1,0 +1,60 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../Docker/dev/Dockerfile.Backend
+    container_name: mevn-backend-dev
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+      - PORT=${PORT}
+      - MONGO_URI=${MONGO_URI}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    ports:
+      - "5001:5000"
+    depends_on:
+      - mongo
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../Docker/dev/Dockerfile.Frontend
+    container_name: mevn-web-dev
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - ./certs:/certs:ro
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+  nginx:
+    image: nginx:alpine
+    container_name: mevn-nginx-dev
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Docker/dev/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/certs:ro
+    depends_on:
+      - frontend
+      - backend
+
+  mongo:
+    image: mongo:6.0
+    container_name: mevn-mongo-dev
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
