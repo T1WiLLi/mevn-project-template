@@ -10,6 +10,8 @@ services:
       - PORT=${PORT}
       - MONGO_URI=${MONGO_URI}
       - CORS_ORIGIN=${CORS_ORIGIN}
+    env_file:
+      - ./.env
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -26,6 +28,8 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=development
+    env_file:
+      - ./.env
     volumes:
       - ./frontend:/app
       - /app/node_modules
