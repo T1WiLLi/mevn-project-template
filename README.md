@@ -17,7 +17,7 @@ The project is organized into the following directories:
     -   `src/`: Contains the main source code for the Vue.js application.
         -   `router/`: Contains Vue Router configuration.
     -   `public/`: Contains static assets and the main HTML file.
--   `on-start.sh`: Script to move .env.template to .env, execute npm install, and run docker automatically.
+-   `on-start.sh`: Script to move .env.template to .env, execute npm install, and run docker automatically (-d).
 -   `to-mern.sh`: Script to convert the MEVN stack to MERN (MongoDB + Express + React + Node).
 -   `to-vanilla.sh`: Script to convert the MEVN stack to vanilla TypeScript with Vite.
 -   `README.md`: This file, providing an overview of the project.
