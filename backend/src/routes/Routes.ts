@@ -2,7 +2,7 @@ import { Express } from 'express';
 import { UserController } from "../controllers/UserController";
 import { useExpressServer, RoutingControllersOptions } from 'routing-controllers';
 import { PostController } from '../controllers/PostController';
-import { csrfMiddleware } from '@/middlewares/csrf';
+import { csrfMiddleware } from '../middlewares/csrf';
 
 export class RouteRegistry {
     private controllers: Function[] = [
