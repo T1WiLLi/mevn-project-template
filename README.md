@@ -32,7 +32,7 @@ To get started with the MEVN stack project, follow these steps:
     ```
 2.  **Execute on-start.sh**:
     ```bash
-    ~/scripts/on-start.sh
+    ./scripts/on-start.sh
     ```
 3.  **Access the application**: Open your web browser and navigate to `http://localhost` to view the frontend application.
 
@@ -42,7 +42,7 @@ The project includes two transformation scripts located in the project root that
 ### Convert to MERN Stack (React)
 Transform your MEVN project to use React instead of Vue:
 ```bash
-~/scripts/to-mern.sh
+./scripts/to-mern.sh
 ```
 **What the MERN script does:**
 -   Removes the Vue frontend while preserving configuration files.
@@ -56,7 +56,7 @@ Transform your MEVN project to use React instead of Vue:
 ### Convert to Vanilla TypeScript
 Transform your project to use vanilla TypeScript with Vite:
 ```bash
-~/scripts/to-vanilla.sh
+./scripts/to-vanilla.sh
 ```
 **What the Vanilla TypeScript script does:**
 -   Removes the Vue frontend while preserving configuration files.
