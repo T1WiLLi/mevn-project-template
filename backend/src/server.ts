@@ -2,7 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import connectDB from './config/db';
-import routes from './routes';
+import { RouteRegistry } from './routes/Routes';
 import { csrfMiddleware } from './middlewares/csrf';
 
 dotenv.config();
@@ -18,10 +18,10 @@ app.use(cors({
 }));
 
 app.use(express.json());
-app.use(csrfMiddleware);
 connectDB();
 
-app.use('/api', routes);
+const routeRegistry = new RouteRegistry();
+routeRegistry.registerRoutes(app);
 
 app.listen(PORT, () => {
     console.log(`API listening on ${PORT}`);
