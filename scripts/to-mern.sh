@@ -43,7 +43,7 @@ if [[ ! -d "${FRONTEND}" ]]; then
 fi
 
 # Backup important config files
-log "📋 Backing up important configuration files to ${BACKUP_DIR} ..."
+log "-> Backing up important configuration files to ${BACKUP_DIR} ..."
 mkdir -p "${BACKUP_DIR}"
 
 # Files to preserve
@@ -70,35 +70,35 @@ CONFIG_FILES=(
 # Copy config files if they exist
 for file in "${CONFIG_FILES[@]}"; do
     if [ -f "${FRONTEND}/${file}" ]; then
-        echo "  ✓ Backing up ${file}"
+        echo "-> Backing up ${file}"
         cp "${FRONTEND}/${file}" "${BACKUP_DIR}/"
     fi
 done
 
 # Remove the Vue frontend directory
-echo "🗑️  Removing Vue frontend directory..."
+echo "-> Removing Vue frontend directory..."
 rm -rf "${FRONTEND}"
 
 # Create new React app
-echo "⚛️  Creating new React application..."
+echo "-> Creating new React application..."
 npx create-react-app "${FRONTEND}" --template typescript
 
 # Wait for creation to complete
 if [ ! -d "${FRONTEND}" ]; then
-    echo "❌ Error: Failed to create React app"
+    echo "-> Error: Failed to create React app"
     exit 1
 fi
 
-echo "🔧 Restoring configuration files..."
+echo "-> Restoring configuration files..."
 
 # Restore config files, but handle conflicts intelligently
 for file in "${CONFIG_FILES[@]}"; do
     if [ -f "${BACKUP_DIR}/${file}" ]; then
         case "${file}" in
             "vite.config.ts"|"vite.config.js")
-                echo "  ⚠️  Converting Vue Vite config to React Vite config"
+                echo "-> Converting Vue Vite config to React Vite config"
                 # Create a React-compatible vite.config.ts based on the original
-                echo "  📝 Your original Vite config saved as vite.config.vue-backup.${file##*.}"
+                echo "-> Your original Vite config saved as vite.config.vue-backup.${file##*.}"
                 cp "${BACKUP_DIR}/${file}" "${FRONTEND}/vite.config.vue-backup.${file##*.}"
                 
                 # Create new React-compatible Vite config based on your Vue config
@@ -130,25 +130,25 @@ export default defineConfig({
 VITE_EOF
                 ;;
             "tsconfig.json")
-                echo "  ⚠️  Merging TypeScript config (keeping React's base, adding your customizations)"
+                echo "-> Merging TypeScript config (keeping React's base, adding your customizations)"
                 # Note: Manual merge might be needed for complex tsconfig changes
-                echo "  📝 Your original tsconfig.json saved as tsconfig.backup.json"
+                echo "-> Your original tsconfig.json saved as tsconfig.backup.json"
                 cp "${BACKUP_DIR}/${file}" "${FRONTEND}/tsconfig.backup.json"
                 ;;
             ".env"|".env.local"|".env.example")
-                echo "  ✓ Restoring environment file: ${file}"
+                echo "  -> Restoring environment file: ${file}"
                 cp "${BACKUP_DIR}/${file}" "${FRONTEND}/"
                 ;;
             ".eslintrc.js"|".eslintrc.json"|"eslint.config.js"|"eslint.config.ts")
-                echo "  ✓ Restoring ESLint config: ${file}"
+                echo "  -> Restoring ESLint config: ${file}"
                 cp "${BACKUP_DIR}/${file}" "${FRONTEND}/"
                 ;;
             ".prettierrc"|".prettierrc.json"|".prettierrc.js"|"prettier.config.js")
-                echo "  ✓ Restoring Prettier config: ${file}"
+                echo "  -> Restoring Prettier config: ${file}"
                 cp "${BACKUP_DIR}/${file}" "${FRONTEND}/"
                 ;;
             ".gitignore")
-                echo "  ✓ Merging .gitignore files"
+                echo "  -> Merging .gitignore files"
                 cat "${BACKUP_DIR}/${file}" >> "${FRONTEND}/.gitignore"
                 # Remove duplicates
                 sort "${FRONTEND}/.gitignore" | uniq > "${FRONTEND}/.gitignore.tmp"
@@ -159,7 +159,7 @@ VITE_EOF
 done
 
 # If Vite config was restored, we need to modify package.json to use Vite instead of react-scripts
-echo "🔧 Setting up Vite for React..."
+echo "-> Setting up Vite for React..."
 
 cd -- "${FRONTEND}"
 
@@ -208,7 +208,7 @@ fi
 cd -- "${ROOT}"
 
 # Create the equivalent React components
-echo "⚛️  Creating React components with your current functionality..."
+echo "-> Creating React components with your current functionality..."
 
 cd -- "${FRONTEND}"
 
@@ -336,21 +336,21 @@ fi
 cd -- "${ROOT}"
 
 # Clean up backup directory
-echo "🧹 Cleaning up temporary files..."
+echo "-> Cleaning up temporary files..."
 rm -rf "${BACKUP_DIR}"
 
 # Update root package.json if it has frontend-specific scripts
 if [ -f "${ROOT}/package.json" ]; then
-    echo "📝 Updating root package.json scripts..."
+    echo "-> Updating root package.json scripts..."
     
     # Check if there are any Vue-specific scripts to update
     if grep -q "vue\|@vue" "${ROOT}/package.json" 2>/dev/null; then
-        echo "  ⚠️  Found Vue references in root package.json - please review manually"
+        echo "-> Found Vue references in root package.json - please review manually"
     fi
 fi
 
 echo ""
-echo "✅ MEVN to MERN conversion completed successfully!"
+echo "-> MEVN to MERN conversion completed successfully!"
 echo ""
 
 if [[ -x "${ON_START_SCRIPT}" ]]; then
@@ -362,5 +362,5 @@ else
 fi
 
 echo ""
-echo "📄 Note: Check frontend/tsconfig.backup.json for your original TypeScript config"
-echo "🔧 Your backend and other project files remain unchanged"
+echo "-> Note: Check frontend/tsconfig.backup.json for your original TypeScript config"
+echo "-> Your backend and other project files remain unchanged"

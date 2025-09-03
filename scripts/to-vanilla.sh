@@ -43,7 +43,7 @@ if [[ ! -d "${FRONTEND}" ]]; then
 fi
 
 # Backup important config files
-log "📋 Backing up important configuration files to ${BACKUP_DIR} ..."
+log "-> Backing up important configuration files to ${BACKUP_DIR} ..."
 mkdir -p "${BACKUP_DIR}"
 
 # Files to preserve
@@ -70,34 +70,34 @@ CONFIG_FILES=(
 # Copy config files if they exist
 for file in "${CONFIG_FILES[@]}"; do
     if [ -f "${FRONTEND}/${file}" ]; then
-        echo "  ✓ Backing up ${file}"
+        echo "-> Backing up ${file}"
         cp "${FRONTEND}/${file}" "${BACKUP_DIR}/"
     fi
 done
 
 # Remove the Vue frontend directory
-echo "🗑️  Removing Vue frontend directory..."
+echo "-> Removing Vue frontend directory..."
 rm -rf "${FRONTEND}"
 
 # Create new Vanilla TypeScript + Vite project
-echo "⚡ Creating new Vanilla TypeScript project with Vite..."
+echo "-> Creating new Vanilla TypeScript project with Vite..."
 (cd "${ROOT}" && npm create vite@latest frontend -- --template vanilla-ts)
 
 # Wait for creation to complete
 if [ ! -d "${FRONTEND}" ]; then
-    echo "❌ Error: Failed to create Vite project"
+    echo "-> Error: Failed to create Vite project"
     exit 1
 fi
 
-echo "🔧 Restoring configuration files..."
+echo "-> Restoring configuration files..."
 
 # Restore config files
 for file in "${CONFIG_FILES[@]}"; do
     if [ -f "${BACKUP_DIR}/${file}" ]; then
         case "${file}" in
             "vite.config.ts"|"vite.config.js")
-                echo "  ⚠️  Converting Vue Vite config to Vanilla TypeScript Vite config"
-                echo "  📝 Your original vite config saved as vite.config.vue-backup.${file##*.}"
+                echo "-> Converting Vue Vite config to Vanilla TypeScript Vite config"
+                echo "-> Your original vite config saved as vite.config.vue-backup.${file##*.}"
                 cp "${BACKUP_DIR}/${file}" "${FRONTEND}/vite.config.vue-backup.${file##*.}"
                 
                 # Create new Vanilla TS compatible Vite config based on your Vue config
@@ -127,24 +127,24 @@ export default defineConfig({
 VITE_EOF
                 ;;
             "tsconfig.json")
-                echo "  ⚠️  Merging TypeScript config (your config saved as tsconfig.backup.json)"
+                echo "-> Merging TypeScript config (your config saved as tsconfig.backup.json)"
                 cp "${BACKUP_DIR}/${file}" "${FRONTEND}/tsconfig.backup.json"
                 # The new Vite template will have its own tsconfig, you might want to merge
                 ;;
             ".env"|".env.local"|".env.example")
-                echo "  ✓ Restoring environment file: ${file}"
+                echo "  -> Restoring environment file: ${file}"
                 cp "${BACKUP_DIR}/${file}" "${FRONTEND}/"
                 ;;
             ".eslintrc.js"|".eslintrc.json"|"eslint.config.js"|"eslint.config.ts")
-                echo "  ✓ Restoring ESLint config: ${file}"
+                echo "  -> Restoring ESLint config: ${file}"
                 cp "${BACKUP_DIR}/${file}" "${FRONTEND}/"
                 ;;
             ".prettierrc"|".prettierrc.json"|".prettierrc.js"|"prettier.config.js")
-                echo "  ✓ Restoring Prettier config: ${file}"
+                echo "  -> Restoring Prettier config: ${file}"
                 cp "${BACKUP_DIR}/${file}" "${FRONTEND}/"
                 ;;
             ".gitignore")
-                echo "  ✓ Merging .gitignore files"
+                echo "  -> Merging .gitignore files"
                 cat "${BACKUP_DIR}/${file}" >> "${FRONTEND}/.gitignore"
                 # Remove duplicates
                 sort "${FRONTEND}/.gitignore" | uniq > "${FRONTEND}/.gitignore.tmp"
@@ -155,7 +155,7 @@ VITE_EOF
 done
 
 # Create a basic project structure with some common utilities
-echo "🏗️  Setting up project structure..."
+echo "-> Setting up project structure..."
 
 cd -- "${FRONTEND}"
 
@@ -433,7 +433,7 @@ EOF
 cd -- "${ROOT}"
 
 # Create the equivalent vanilla TypeScript functionality
-echo "⚡ Creating vanilla TypeScript app with your current functionality..."
+echo "-> Creating vanilla TypeScript app with your current functionality..."
 
 cd -- "${FRONTEND}"
 
@@ -669,21 +669,21 @@ EOF
 cd -- "${ROOT}"
 
 # Clean up backup directory
-echo "🧹 Cleaning up temporary files..."
+echo "-> Cleaning up temporary files..."
 rm -rf "${BACKUP_DIR}"
 
 # Update root package.json if it has frontend-specific scripts
 if [ -f "${ROOT}/package.json" ]; then
-    echo "📝 Updating root package.json scripts..."
+    echo "-> Updating root package.json scripts..."
     
     # Check if there are any Vue-specific scripts to update
     if grep -q "vue\|@vue" "${ROOT}/package.json" 2>/dev/null; then
-        echo "  ⚠️  Found Vue references in root package.json - please review manually"
+        echo "-> Found Vue references in root package.json - please review manually"
     fi
 fi
 
 echo ""
-echo "✅ MEVN to Vanilla TypeScript conversion completed successfully!"
+echo "-> MEVN to Vanilla TypeScript conversion completed successfully!"
 echo ""
 
 if [[ -x "${ON_START_SCRIPT}" ]]; then
@@ -695,16 +695,16 @@ else
 fi
 
 echo ""
-echo "📁 Project structure created:"
+echo "-> Project structure created:"
 echo "   ├── src/"
 echo "   │   ├── utils/api.ts      (API utility functions)"
 echo "   │   ├── types/index.ts    (TypeScript type definitions)"
 echo "   │   ├── styles/main.css   (Global styles)"
 echo "   │   └── ..."
 echo ""
-echo "📄 Configuration backups:"
+echo "-> Configuration backups:"
 echo "   - tsconfig.backup.json (your original TypeScript config)"
 echo "   - vite.config.backup.* (your original Vite config, if exists)"
 echo ""
-echo "🔧 Your backend and other project files remain unchanged"
-echo "🌐 The API utility is configured to work with your existing backend"
+echo "-> Your backend and other project files remain unchanged"
+echo "-> The API utility is configured to work with your existing backend"
