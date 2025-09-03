@@ -41,7 +41,7 @@ if [[ ! -d "${FRONTEND}" ]]; then
   log "No existing frontend/ found at ${FRONTEND} — continuing (will create new React app)."
 fi
 
-# ── Backup important config files from old frontend ───────────────────────────
+# Backup important config files
 log "📋 Backing up important configuration files to ${BACKUP_DIR} ..."
 mkdir -p "${BACKUP_DIR}"
 
