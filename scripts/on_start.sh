@@ -67,7 +67,7 @@ echo ""
 
 log "Building and starting new containers..."
 cd "${ROOT}"
-docker compose up --build
+docker compose up --build -d
 echo ""
 
 log "Setup complete. Development environment is running."
