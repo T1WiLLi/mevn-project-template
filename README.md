@@ -22,6 +22,7 @@ The project is organized into the following directories:
     -   `src/`: Contains the main source code for the Vue.js application.
         -   `router/`: Contains Vue Router configuration.
     -   `public/`: Contains static assets and the main HTML file.
+-   `on-start.sh`: Script to move .env.template to .env, execute npm install and run docker automatically.
 -   `to-mern.sh`: Script to convert the MEVN stack to MERN (MongoDB + Express + React + Node).
 -   `to-vanilla.sh`: Script to convert the MEVN stack to vanilla TypeScript with Vite.
 -   `README.md`: This file, providing an overview of the project.
@@ -47,25 +48,13 @@ To get started with the MEVN stack project, follow these steps:
     
     ```
     
-3.  **Install frontend dependencies**:
+3.  **Execute on-start.sh**:
     
     ```bash
-    cd ../frontend
-    npm install
-    
+    ~/scripts/on-start.sh
     ```
     
-4.  **Set up environment variables**: Rename `.env.template` file to `.env` and ( optional ) add the necessary environment variables (e.g., database connection string).
-    
-5.  **Start the App**: Using Docker-Compose:
-    
-    ```bash
-    docker-compose up --build
-    
-    ```
-    
-6.  **Access the application**: Open your web browser and navigate to `http://localhost` to view the frontend application.
-    
+   **Access the application**: Open your web browser and navigate to `http://localhost` to view the frontend application.
 
 ## Stack Transformation Scripts
 
@@ -76,9 +65,7 @@ The project includes two transformation scripts located in the project root that
 Transform your MEVN project to use React instead of Vue:
 
 ```bash
-chmod +x to-mern.sh
-./to-mern.sh
-
+~/scripts/to-mern.sh
 ```
 
 **What the MERN script does:**
@@ -89,15 +76,14 @@ chmod +x to-mern.sh
 -   Sets up React Router with the same routing structure (`/` → Welcome, `*` → fallback)
 -   Preserves your Vite configuration (converted to React-compatible)
 -   Maintains all ESLint, Prettier, and environment configurations
+-   Execute on-start.sh for the new stack.
 
 ### Convert to Vanilla TypeScript
 
 Transform your project to use vanilla TypeScript with Vite:
 
 ```bash
-chmod +x to-vanilla.sh
-./to-vanilla.sh
-
+~/scripts/to-vanilla.sh
 ```
 
 **What the Vanilla TypeScript script does:**
@@ -108,22 +94,17 @@ chmod +x to-vanilla.sh
 -   Sets up a simple router system for future expansion
 -   Creates organized project structure with utilities and types
 -   Maintains all your development configurations
+-   Execute on-start.sh for the new stack.
 
 ### Features Preserved in Both Transformations:
 
--   ✅ **API Integration**: Same axios calls to `/api/` endpoint
--   ✅ **Welcome Screen**: Identical functionality and styling
--   ✅ **Docker Configuration**: Full compatibility with existing docker-compose setup
--   ✅ **Vite Configuration**: Preserves your server settings, proxy, and HMR config
--   ✅ **Development Tools**: ESLint, Prettier, TypeScript configurations
--   ✅ **Environment Variables**: All .env files preserved
--   ✅ **Routing**: Same route structure with fallback handling
-
-### After Transformation:
-
-1.  **For MERN**: `cd frontend && npm install && npm run dev`
-2.  **For Vanilla**: `cd frontend && npm install && npm run dev`
-3.  **Docker Compose**: Continue using `docker-compose up --build` as usual
+-   **API Integration**: Same axios calls to `/api/` endpoint
+-   **Welcome Screen**: Identical functionality and styling
+-   **Docker Configuration**: Full compatibility with existing docker-compose setup
+-   **Vite Configuration**: Preserves your server settings, proxy, and HMR config
+-   **Development Tools**: ESLint, Prettier, TypeScript configurations
+-   **Environment Variables**: All .env files preserved
+-   **Routing**: Same route structure with fallback handling
 
 ## Development Notes
 
