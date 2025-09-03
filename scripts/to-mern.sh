@@ -30,6 +30,7 @@ detect_root() {
 ROOT="$(detect_root)"
 FRONTEND="${ROOT}/frontend"
 BACKUP_DIR="${ROOT}/temp_configs"
+ON_START_SCRIPT="${ROOT}/scripts/on_start.sh"
 
 log "Starting MEVN → MERN conversion at ROOT=${ROOT}"
 
@@ -351,15 +352,15 @@ fi
 echo ""
 echo "✅ MEVN to MERN conversion completed successfully!"
 echo ""
-echo "📋 Next steps:"
-echo "   1. cd frontend"
-echo "   2. npm install (if needed)"
-if [ -f "${FRONTEND}/vite.config.ts" ] || [ -f "${FRONTEND}/vite.config.js" ]; then
-    echo "   3. npm run dev (using Vite)"
+
+if [[ -x "${ON_START_SCRIPT}" ]]; then
+    echo "Running environment startup script (on_start.sh)..."
+    "${ON_START_SCRIPT}"
 else
-    echo "   3. npm start (using react-scripts)"
+    echo "Could not find or execute ${ON_START_SCRIPT}"
+    exit 1
 fi
-echo "   4. Review and merge any configuration conflicts"
+
 echo ""
 echo "📄 Note: Check frontend/tsconfig.backup.json for your original TypeScript config"
 echo "🔧 Your backend and other project files remain unchanged"

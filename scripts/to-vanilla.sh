@@ -30,6 +30,7 @@ detect_root() {
 ROOT="$(detect_root)"
 FRONTEND="${ROOT}/frontend"
 BACKUP_DIR="${ROOT}/temp_configs"
+ON_START_SCRIPT="${ROOT}/scripts/on_start.sh"
 
 log "Starting MEVN → Vanilla conversion at ROOT=${ROOT}"
 
@@ -684,11 +685,15 @@ fi
 echo ""
 echo "✅ MEVN to Vanilla TypeScript conversion completed successfully!"
 echo ""
-echo "📋 Next steps:"
-echo "   1. cd frontend"
-echo "   2. npm install"
-echo "   3. npm run dev"
-echo "   4. Review and merge any configuration conflicts"
+
+if [[ -x "${ON_START_SCRIPT}" ]]; then
+    echo "Running environment startup script (on_start.sh)..."
+    "${ON_START_SCRIPT}"
+else
+    echo "Could not find or execute ${ON_START_SCRIPT}"
+    exit 1
+fi
+
 echo ""
 echo "📁 Project structure created:"
 echo "   ├── src/"
