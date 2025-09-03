@@ -30,7 +30,7 @@ detect_root() {
 ROOT="$(detect_root)"
 FRONTEND="${ROOT}/frontend"
 BACKUP_DIR="${ROOT}/temp_configs"
-ON_START_SCRIPT="${ROOT}/scripts/on_start.sh"
+ON_START_SCRIPT="${ROOT}/scripts/on-start.sh"
 
 log "Starting MEVN → MERN conversion at ROOT=${ROOT}"
 

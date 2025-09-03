@@ -3,7 +3,7 @@ set -Eeuo pipefail
 trap 'error_handler "${LINENO}" "${BASH_COMMAND}"' ERR
 
 ###############################################################################
-# on_start.sh - Script to initialize and start the development environment
+# on-start.sh - Script to initialize and start the development environment
 ###############################################################################
 
 log()   { echo -e "$(date '+%F %T') | ${*}" >&2; }
