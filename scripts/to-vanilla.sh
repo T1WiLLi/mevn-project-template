@@ -81,7 +81,7 @@ rm -rf "${FRONTEND}"
 
 # Create new Vanilla TypeScript + Vite project
 echo "⚡ Creating new Vanilla TypeScript project with Vite..."
-npm create vite@latest "${FRONTEND}" -- --template vanilla-ts
+(cd "${ROOT}" && npm create vite@latest frontend -- --template vanilla-ts)
 
 # Wait for creation to complete
 if [ ! -d "${FRONTEND}" ]; then
