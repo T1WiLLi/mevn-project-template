@@ -1,22 +1,50 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -Eeuo pipefail
+trap 'error_handler "${LINENO}" "${BASH_COMMAND}"' ERR
 
+###############################################################################
 # to-mern.sh - Convert MEVN stack to MERN stack
 # This script removes the Vue frontend and replaces it with a React frontend
+###############################################################################
 
-set -e  # Exit on any error
+log()   { echo -e "$(date '+%F %T') | ${*}" >&2; }
+fail()  { log "ERROR: ${*}"; exit 1; }
+error_handler() { log "ERROR at line ${1}: ${2}"; exit 1; }
 
-echo "🔄 Starting MEVN to MERN conversion..."
+script_dir() { cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P; }
 
-# Check if we're in the right directory (should have frontend folder)
-if [ ! -d "frontend" ]; then
-    echo "❌ Error: No 'frontend' directory found. Make sure you're in the project root."
-    exit 1
+detect_root() {
+  local sd; sd="$(script_dir)"
+  if [[ -d "${sd}/.." && -d "${sd}/../frontend" ]]; then
+    realpath "${sd}/.."; return
+  fi
+  if command -v git >/dev/null 2>&1 && git rev-parse --show-toplevel >/dev/null 2>&1; then
+    git rev-parse --show-toplevel; return
+  fi
+  if [[ -d "${PWD}/frontend" || -d "${PWD}/backend" ]]; then
+    echo "${PWD}"; return
+  fi
+  fail "Cannot locate project root. Run inside the repo or keep script in scripts/."
+}
+
+ROOT="$(detect_root)"
+FRONTEND="${ROOT}/frontend"
+BACKUP_DIR="${ROOT}/temp_configs"
+ON_START_SCRIPT="${ROOT}/scripts/on-start.sh"
+
+log "Starting MEVN → MERN conversion at ROOT=${ROOT}"
+
+command -v node >/dev/null || fail "node is required"
+command -v npm  >/dev/null || fail "npm is required"
+command -v npx  >/dev/null || fail "npx is required"
+
+if [[ ! -d "${FRONTEND}" ]]; then
+  log "No existing frontend/ found at ${FRONTEND} — continuing (will create new React app)."
 fi
 
-# Backup important config files from frontend
-echo "📋 Backing up important configuration files..."
-BACKUP_DIR="./temp_configs"
-mkdir -p "$BACKUP_DIR"
+# Backup important config files
+log "-> Backing up important configuration files to ${BACKUP_DIR} ..."
+mkdir -p "${BACKUP_DIR}"
 
 # Files to preserve
 CONFIG_FILES=(
@@ -41,40 +69,40 @@ CONFIG_FILES=(
 
 # Copy config files if they exist
 for file in "${CONFIG_FILES[@]}"; do
-    if [ -f "frontend/$file" ]; then
-        echo "  ✓ Backing up $file"
-        cp "frontend/$file" "$BACKUP_DIR/"
+    if [ -f "${FRONTEND}/${file}" ]; then
+        echo "-> Backing up ${file}"
+        cp "${FRONTEND}/${file}" "${BACKUP_DIR}/"
     fi
 done
 
 # Remove the Vue frontend directory
-echo "🗑️  Removing Vue frontend directory..."
-rm -rf frontend/
+echo "-> Removing Vue frontend directory..."
+rm -rf "${FRONTEND}"
 
 # Create new React app
-echo "⚛️  Creating new React application..."
-npx create-react-app frontend --template typescript
+echo "-> Creating new React application..."
+npx create-react-app "${FRONTEND}" --template typescript
 
 # Wait for creation to complete
-if [ ! -d "frontend" ]; then
-    echo "❌ Error: Failed to create React app"
+if [ ! -d "${FRONTEND}" ]; then
+    echo "-> Error: Failed to create React app"
     exit 1
 fi
 
-echo "🔧 Restoring configuration files..."
+echo "-> Restoring configuration files..."
 
 # Restore config files, but handle conflicts intelligently
 for file in "${CONFIG_FILES[@]}"; do
-    if [ -f "$BACKUP_DIR/$file" ]; then
-        case $file in
+    if [ -f "${BACKUP_DIR}/${file}" ]; then
+        case "${file}" in
             "vite.config.ts"|"vite.config.js")
-                echo "  ⚠️  Converting Vue Vite config to React Vite config"
+                echo "-> Converting Vue Vite config to React Vite config"
                 # Create a React-compatible vite.config.ts based on the original
-                echo "  📝 Your original Vite config saved as vite.config.vue-backup.${file##*.}"
-                cp "$BACKUP_DIR/$file" "frontend/vite.config.vue-backup.${file##*.}"
+                echo "-> Your original Vite config saved as vite.config.vue-backup.${file##*.}"
+                cp "${BACKUP_DIR}/${file}" "${FRONTEND}/vite.config.vue-backup.${file##*.}"
                 
                 # Create new React-compatible Vite config based on your Vue config
-                cat > "frontend/vite.config.ts" << 'VITE_EOF'
+                cat > "${FRONTEND}/vite.config.ts" << 'VITE_EOF'
 import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -102,38 +130,38 @@ export default defineConfig({
 VITE_EOF
                 ;;
             "tsconfig.json")
-                echo "  ⚠️  Merging TypeScript config (keeping React's base, adding your customizations)"
+                echo "-> Merging TypeScript config (keeping React's base, adding your customizations)"
                 # Note: Manual merge might be needed for complex tsconfig changes
-                echo "  📝 Your original tsconfig.json saved as tsconfig.backup.json"
-                cp "$BACKUP_DIR/$file" "frontend/tsconfig.backup.json"
+                echo "-> Your original tsconfig.json saved as tsconfig.backup.json"
+                cp "${BACKUP_DIR}/${file}" "${FRONTEND}/tsconfig.backup.json"
                 ;;
             ".env"|".env.local"|".env.example")
-                echo "  ✓ Restoring environment file: $file"
-                cp "$BACKUP_DIR/$file" "frontend/"
+                echo "  -> Restoring environment file: ${file}"
+                cp "${BACKUP_DIR}/${file}" "${FRONTEND}/"
                 ;;
             ".eslintrc.js"|".eslintrc.json"|"eslint.config.js"|"eslint.config.ts")
-                echo "  ✓ Restoring ESLint config: $file"
-                cp "$BACKUP_DIR/$file" "frontend/"
+                echo "  -> Restoring ESLint config: ${file}"
+                cp "${BACKUP_DIR}/${file}" "${FRONTEND}/"
                 ;;
             ".prettierrc"|".prettierrc.json"|".prettierrc.js"|"prettier.config.js")
-                echo "  ✓ Restoring Prettier config: $file"
-                cp "$BACKUP_DIR/$file" "frontend/"
+                echo "  -> Restoring Prettier config: ${file}"
+                cp "${BACKUP_DIR}/${file}" "${FRONTEND}/"
                 ;;
             ".gitignore")
-                echo "  ✓ Merging .gitignore files"
-                cat "$BACKUP_DIR/$file" >> "frontend/.gitignore"
+                echo "  -> Merging .gitignore files"
+                cat "${BACKUP_DIR}/${file}" >> "${FRONTEND}/.gitignore"
                 # Remove duplicates
-                sort "frontend/.gitignore" | uniq > "frontend/.gitignore.tmp"
-                mv "frontend/.gitignore.tmp" "frontend/.gitignore"
+                sort "${FRONTEND}/.gitignore" | uniq > "${FRONTEND}/.gitignore.tmp"
+                mv "${FRONTEND}/.gitignore.tmp" "${FRONTEND}/.gitignore"
                 ;;
         esac
     fi
 done
 
 # If Vite config was restored, we need to modify package.json to use Vite instead of react-scripts
-echo "🔧 Setting up Vite for React..."
+echo "-> Setting up Vite for React..."
 
-cd frontend
+cd -- "${FRONTEND}"
 
 # Remove react-scripts and add Vite with React plugin
 npm uninstall react-scripts
@@ -177,12 +205,12 @@ HTML_EOF
     rm -f index.html.bak
 fi
 
-cd ..
+cd -- "${ROOT}"
 
 # Create the equivalent React components
-echo "⚛️  Creating React components with your current functionality..."
+echo "-> Creating React components with your current functionality..."
 
-cd frontend
+cd -- "${FRONTEND}"
 
 # Install axios for API calls (matching your current setup)
 npm install axios
@@ -305,34 +333,34 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 EOF
 fi
 
-cd ..
+cd -- "${ROOT}"
 
 # Clean up backup directory
-echo "🧹 Cleaning up temporary files..."
-rm -rf "$BACKUP_DIR"
+echo "-> Cleaning up temporary files..."
+rm -rf "${BACKUP_DIR}"
 
 # Update root package.json if it has frontend-specific scripts
-if [ -f "package.json" ]; then
-    echo "📝 Updating root package.json scripts..."
+if [ -f "${ROOT}/package.json" ]; then
+    echo "-> Updating root package.json scripts..."
     
     # Check if there are any Vue-specific scripts to update
-    if grep -q "vue\|@vue" package.json 2>/dev/null; then
-        echo "  ⚠️  Found Vue references in root package.json - please review manually"
+    if grep -q "vue\|@vue" "${ROOT}/package.json" 2>/dev/null; then
+        echo "-> Found Vue references in root package.json - please review manually"
     fi
 fi
 
 echo ""
-echo "✅ MEVN to MERN conversion completed successfully!"
+echo "-> MEVN to MERN conversion completed successfully!"
 echo ""
-echo "📋 Next steps:"
-echo "   1. cd frontend"
-echo "   2. npm install (if needed)"
-if [ -f "frontend/vite.config.ts" ] || [ -f "frontend/vite.config.js" ]; then
-    echo "   3. npm run dev (using Vite)"
+
+if [[ -x "${ON_START_SCRIPT}" ]]; then
+    echo "Running environment startup script (on_start.sh)..."
+    "${ON_START_SCRIPT}"
 else
-    echo "   3. npm start (using react-scripts)"
+    echo "Could not find or execute ${ON_START_SCRIPT}"
+    exit 1
 fi
-echo "   4. Review and merge any configuration conflicts"
+
 echo ""
-echo "📄 Note: Check frontend/tsconfig.backup.json for your original TypeScript config"
-echo "🔧 Your backend and other project files remain unchanged"
+echo "-> Note: Check frontend/tsconfig.backup.json for your original TypeScript config"
+echo "-> Your backend and other project files remain unchanged"

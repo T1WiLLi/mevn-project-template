@@ -1,22 +1,50 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -Eeuo pipefail
+trap 'error_handler "${LINENO}" "${BASH_COMMAND}"' ERR
 
+###############################################################################
 # to-vanilla.sh - Convert MEVN stack to Vanilla TypeScript with Vite
 # This script removes the Vue frontend and replaces it with a vanilla TypeScript + Vite setup
+###############################################################################
 
-set -e  # Exit on any error
+log()   { echo -e "$(date '+%F %T') | ${*}" >&2; }
+fail()  { log "ERROR: ${*}"; exit 1; }
+error_handler() { log "ERROR at line ${1}: ${2}"; exit 1; }
 
-echo "🔄 Starting MEVN to Vanilla TypeScript conversion..."
+script_dir() { cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P; }
 
-# Check if we're in the right directory (should have frontend folder)
-if [ ! -d "frontend" ]; then
-    echo "❌ Error: No 'frontend' directory found. Make sure you're in the project root."
-    exit 1
+detect_root() {
+  local sd; sd="$(script_dir)"
+  if [[ -d "${sd}/.." && -d "${sd}/../frontend" ]]; then
+    realpath "${sd}/.."; return
+  fi
+  if command -v git >/dev/null 2>&1 && git rev-parse --show-toplevel >/dev/null 2>&1; then
+    git rev-parse --show-toplevel; return
+  fi
+  if [[ -d "${PWD}/frontend" || -d "${PWD}/backend" ]]; then
+    echo "${PWD}"; return
+  fi
+  fail "Cannot locate project root. Run inside the repo or keep script in scripts/."
+}
+
+ROOT="$(detect_root)"
+FRONTEND="${ROOT}/frontend"
+BACKUP_DIR="${ROOT}/temp_configs"
+ON_START_SCRIPT="${ROOT}/scripts/on-start.sh"
+
+log "Starting MEVN → Vanilla conversion at ROOT=${ROOT}"
+
+command -v node >/dev/null || fail "node is required"
+command -v npm  >/dev/null || fail "npm is required"
+command -v npx  >/dev/null || fail "npx is required"
+
+if [[ ! -d "${FRONTEND}" ]]; then
+  log "No existing frontend/ found at ${FRONTEND} — continuing (will create new React app)."
 fi
 
-# Backup important config files from frontend
-echo "📋 Backing up important configuration files..."
-BACKUP_DIR="./temp_configs"
-mkdir -p "$BACKUP_DIR"
+# Backup important config files
+log "-> Backing up important configuration files to ${BACKUP_DIR} ..."
+mkdir -p "${BACKUP_DIR}"
 
 # Files to preserve
 CONFIG_FILES=(
@@ -41,39 +69,39 @@ CONFIG_FILES=(
 
 # Copy config files if they exist
 for file in "${CONFIG_FILES[@]}"; do
-    if [ -f "frontend/$file" ]; then
-        echo "  ✓ Backing up $file"
-        cp "frontend/$file" "$BACKUP_DIR/"
+    if [ -f "${FRONTEND}/${file}" ]; then
+        echo "-> Backing up ${file}"
+        cp "${FRONTEND}/${file}" "${BACKUP_DIR}/"
     fi
 done
 
 # Remove the Vue frontend directory
-echo "🗑️  Removing Vue frontend directory..."
-rm -rf frontend/
+echo "-> Removing Vue frontend directory..."
+rm -rf "${FRONTEND}"
 
 # Create new Vanilla TypeScript + Vite project
-echo "⚡ Creating new Vanilla TypeScript project with Vite..."
-npm create vite@latest frontend -- --template vanilla-ts
+echo "-> Creating new Vanilla TypeScript project with Vite..."
+(cd "${ROOT}" && npm create vite@latest frontend -- --template vanilla-ts)
 
 # Wait for creation to complete
-if [ ! -d "frontend" ]; then
-    echo "❌ Error: Failed to create Vite project"
+if [ ! -d "${FRONTEND}" ]; then
+    echo "-> Error: Failed to create Vite project"
     exit 1
 fi
 
-echo "🔧 Restoring configuration files..."
+echo "-> Restoring configuration files..."
 
 # Restore config files
 for file in "${CONFIG_FILES[@]}"; do
-    if [ -f "$BACKUP_DIR/$file" ]; then
-        case $file in
+    if [ -f "${BACKUP_DIR}/${file}" ]; then
+        case "${file}" in
             "vite.config.ts"|"vite.config.js")
-                echo "  ⚠️  Converting Vue Vite config to Vanilla TypeScript Vite config"
-                echo "  📝 Your original vite config saved as vite.config.vue-backup.${file##*.}"
-                cp "$BACKUP_DIR/$file" "frontend/vite.config.vue-backup.${file##*.}"
+                echo "-> Converting Vue Vite config to Vanilla TypeScript Vite config"
+                echo "-> Your original vite config saved as vite.config.vue-backup.${file##*.}"
+                cp "${BACKUP_DIR}/${file}" "${FRONTEND}/vite.config.vue-backup.${file##*.}"
                 
                 # Create new Vanilla TS compatible Vite config based on your Vue config
-                cat > "frontend/vite.config.ts" << 'VITE_EOF'
+                cat > "${FRONTEND}/vite.config.ts" << 'VITE_EOF'
 import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
 
@@ -99,37 +127,37 @@ export default defineConfig({
 VITE_EOF
                 ;;
             "tsconfig.json")
-                echo "  ⚠️  Merging TypeScript config (your config saved as tsconfig.backup.json)"
-                cp "$BACKUP_DIR/$file" "frontend/tsconfig.backup.json"
+                echo "-> Merging TypeScript config (your config saved as tsconfig.backup.json)"
+                cp "${BACKUP_DIR}/${file}" "${FRONTEND}/tsconfig.backup.json"
                 # The new Vite template will have its own tsconfig, you might want to merge
                 ;;
             ".env"|".env.local"|".env.example")
-                echo "  ✓ Restoring environment file: $file"
-                cp "$BACKUP_DIR/$file" "frontend/"
+                echo "  -> Restoring environment file: ${file}"
+                cp "${BACKUP_DIR}/${file}" "${FRONTEND}/"
                 ;;
             ".eslintrc.js"|".eslintrc.json"|"eslint.config.js"|"eslint.config.ts")
-                echo "  ✓ Restoring ESLint config: $file"
-                cp "$BACKUP_DIR/$file" "frontend/"
+                echo "  -> Restoring ESLint config: ${file}"
+                cp "${BACKUP_DIR}/${file}" "${FRONTEND}/"
                 ;;
             ".prettierrc"|".prettierrc.json"|".prettierrc.js"|"prettier.config.js")
-                echo "  ✓ Restoring Prettier config: $file"
-                cp "$BACKUP_DIR/$file" "frontend/"
+                echo "  -> Restoring Prettier config: ${file}"
+                cp "${BACKUP_DIR}/${file}" "${FRONTEND}/"
                 ;;
             ".gitignore")
-                echo "  ✓ Merging .gitignore files"
-                cat "$BACKUP_DIR/$file" >> "frontend/.gitignore"
+                echo "  -> Merging .gitignore files"
+                cat "${BACKUP_DIR}/${file}" >> "${FRONTEND}/.gitignore"
                 # Remove duplicates
-                sort "frontend/.gitignore" | uniq > "frontend/.gitignore.tmp"
-                mv "frontend/.gitignore.tmp" "frontend/.gitignore"
+                sort "${FRONTEND}/.gitignore" | uniq > "${FRONTEND}/.gitignore.tmp"
+                mv "${FRONTEND}/.gitignore.tmp" "${FRONTEND}/.gitignore"
                 ;;
         esac
     fi
 done
 
 # Create a basic project structure with some common utilities
-echo "🏗️  Setting up project structure..."
+echo "-> Setting up project structure..."
 
-cd frontend
+cd -- "${FRONTEND}"
 
 # Create additional directories that might be useful
 mkdir -p src/utils src/types src/styles src/assets
@@ -402,12 +430,12 @@ VITE_API_URL=http://localhost:5000/api
 # Add other environment variables as needed
 EOF
 
-cd ..
+cd -- "${ROOT}"
 
 # Create the equivalent vanilla TypeScript functionality
-echo "⚡ Creating vanilla TypeScript app with your current functionality..."
+echo "-> Creating vanilla TypeScript app with your current functionality..."
 
-cd frontend
+cd -- "${FRONTEND}"
 
 # Install axios for API calls (matching your current setup)
 npm install axios
@@ -638,41 +666,45 @@ export class Router {
 }
 EOF
 
-cd ..
+cd -- "${ROOT}"
 
 # Clean up backup directory
-echo "🧹 Cleaning up temporary files..."
-rm -rf "$BACKUP_DIR"
+echo "-> Cleaning up temporary files..."
+rm -rf "${BACKUP_DIR}"
 
 # Update root package.json if it has frontend-specific scripts
-if [ -f "package.json" ]; then
-    echo "📝 Updating root package.json scripts..."
+if [ -f "${ROOT}/package.json" ]; then
+    echo "-> Updating root package.json scripts..."
     
     # Check if there are any Vue-specific scripts to update
-    if grep -q "vue\|@vue" package.json 2>/dev/null; then
-        echo "  ⚠️  Found Vue references in root package.json - please review manually"
+    if grep -q "vue\|@vue" "${ROOT}/package.json" 2>/dev/null; then
+        echo "-> Found Vue references in root package.json - please review manually"
     fi
 fi
 
 echo ""
-echo "✅ MEVN to Vanilla TypeScript conversion completed successfully!"
+echo "-> MEVN to Vanilla TypeScript conversion completed successfully!"
 echo ""
-echo "📋 Next steps:"
-echo "   1. cd frontend"
-echo "   2. npm install"
-echo "   3. npm run dev"
-echo "   4. Review and merge any configuration conflicts"
+
+if [[ -x "${ON_START_SCRIPT}" ]]; then
+    echo "Running environment startup script (on_start.sh)..."
+    "${ON_START_SCRIPT}"
+else
+    echo "Could not find or execute ${ON_START_SCRIPT}"
+    exit 1
+fi
+
 echo ""
-echo "📁 Project structure created:"
+echo "-> Project structure created:"
 echo "   ├── src/"
 echo "   │   ├── utils/api.ts      (API utility functions)"
 echo "   │   ├── types/index.ts    (TypeScript type definitions)"
 echo "   │   ├── styles/main.css   (Global styles)"
 echo "   │   └── ..."
 echo ""
-echo "📄 Configuration backups:"
+echo "-> Configuration backups:"
 echo "   - tsconfig.backup.json (your original TypeScript config)"
 echo "   - vite.config.backup.* (your original Vite config, if exists)"
 echo ""
-echo "🔧 Your backend and other project files remain unchanged"
-echo "🌐 The API utility is configured to work with your existing backend"
+echo "-> Your backend and other project files remain unchanged"
+echo "-> The API utility is configured to work with your existing backend"
