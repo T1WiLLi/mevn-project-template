@@ -1,0 +1,28 @@
+{
+  "button": {
+    "createUser": "Créer un utilisateur",
+    "delete": "Supprimer",
+    "switchLang": "Languette"
+  },
+  "error": {
+    "createUser": "Échec de la création de l'utilisateur",
+    "deleteUser": "Échec de la suppression de l'utilisateur",
+    "fetchUsers": "Une erreur s'est produite tout en récupérant les utilisateurs"
+  },
+  "form": {
+    "name": "Nom",
+    "email": "E-mail",
+    "password": "Mot de passe"
+  },
+  "message": {
+    "loading": "Chargement...",
+    "loadingUsers": "Chargement...",
+    "failedFetch": "Impossible de récupérer les utilisateurs",
+    "noUsers": "Aucun utilisateur trouvé",
+    "visitDocs": "Visiter les documents"
+  },
+  "title": {
+    "welcome": "Bienvenue Mevn-Template",
+    "manageUsers": "Gérer les utilisateurs"
+  }
+}

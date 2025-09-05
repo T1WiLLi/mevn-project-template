@@ -1,0 +1,20 @@
+{
+  "user": {
+    "name": {
+      "required": "Name is required",
+      "minLength": "Name must be at least 2 characters",
+      "maxLength": "Name cannot exceed 50 characters"
+    },
+    "email": {
+      "required": "Email is required",
+      "match": "Email must be valid",
+      "invalid": "Email is invalid",
+      "unique": "Email is already in use"
+    },
+    "password": {
+      "required": "Password is required",
+      "minLength": "Password must be at least 8 characters",
+      "match": "Password must include upper, lower, number, special"
+    }
+  }
+}

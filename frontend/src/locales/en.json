@@ -1,0 +1,28 @@
+{
+  "message": {
+    "loading": "Loading...",
+    "failedFetch": "Can't fetch users",
+    "loadingUsers": "Loading...",
+    "noUsers": "No User Found",
+    "visitDocs": "Visit docs"
+  },
+  "error": {
+    "fetchUsers": "An error happened while fetching the users",
+    "createUser": "Failed to create user",
+    "deleteUser": "Failed to delete user"
+  },
+  "title": {
+    "welcome": "Welcome MEVN-Template",
+    "manageUsers": "Manage users"
+  },
+  "button": {
+    "switchLang": "Toggle language",
+    "createUser": "Create User",
+    "delete": "Delete"
+  },
+  "form": {
+    "name": "Name",
+    "email": "Email",
+    "password": "Password"
+  }
+}

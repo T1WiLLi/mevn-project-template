@@ -1,7 +1,9 @@
 import { getCookie } from "@/utils/util";
 import axios from "axios";
 
-axios.interceptors.request.use(config => {
+const api = axios.create({ baseURL: '/api' });
+api.defaults.withCredentials = true;
+api.interceptors.request.use(config => {
     const method = (config.method || 'GET').toUpperCase();
 
     if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
@@ -12,3 +14,5 @@ axios.interceptors.request.use(config => {
     }
     return config;
 });
+
+export default api;

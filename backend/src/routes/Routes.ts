@@ -2,26 +2,41 @@ import { Express } from 'express';
 import { UserController } from "../controllers/UserController";
 import { useExpressServer, RoutingControllersOptions } from 'routing-controllers';
 import { PostController } from '../controllers/PostController';
-import { csrfMiddleware } from '@/middlewares/csrf';
+import { CsrfMiddleware } from '../middlewares/CsrfMiddleware';
+import { HomeController } from '../controllers/HomeController';
+import { MongooseValidationErrorHandler } from '../errors/MongooseValidationHandler';
+import { logger } from "../config/Logger";
+import { GlobalExceptionHandler } from '../errors/GlobalExceptionHandler';
+import { I18nMiddleware } from '../middlewares/I18nMiddleware';
 
 export class RouteRegistry {
     private controllers: Function[] = [
+        HomeController,
         UserController,
         PostController,
         // Add your controllers here
     ];
 
+    // The order here is important!
+    private middlewares: Function[] = [
+        CsrfMiddleware,
+        I18nMiddleware,
+        MongooseValidationErrorHandler,
+        GlobalExceptionHandler
+    ]
+
     private options: RoutingControllersOptions = {
         routePrefix: "/api",
         controllers: this.controllers,
-        middlewares: [csrfMiddleware], // Add global middlewares
-        interceptors: [], // Add global interceptors
-        defaultErrorHandler: false, // Set to true if you want default error handling
+        middlewares: this.middlewares,
+        interceptors: [],
+        defaultErrorHandler: false,
+        development: process.env.NODE_ENV === 'development'
     };
 
     public registerRoutes(app: Express) {
         useExpressServer(app, this.options);
-        console.log(`Registered ${this.controllers.length} controller(s)`)
+        logger.debug(`Registered ${this.controllers.length} controller(s)`);
     }
 
     public addControllers(controllers: Function[]): RouteRegistry {

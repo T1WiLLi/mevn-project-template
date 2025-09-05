@@ -1,0 +1,20 @@
+{
+  "user": {
+    "name": {
+      "required": "Le nom est requis",
+      "minLength": "Le nom doit comporter au moins 2 caractères",
+      "maxLength": "Le nom ne peut pas dépasser 50 caractères"
+    },
+    "email": {
+      "required": "Un e-mail est requis",
+      "match": "Le courrier électronique doit être valide",
+      "invalid": "Le e-mail est invalide",
+      "unique": "Le courrier électronique est déjà utilisé"
+    },
+    "password": {
+      "match": "Le mot de passe doit inclure le haut, le bas, le numéro, spécial",
+      "required": "Le mot de passe est requis",
+      "minLength": "Le mot de passe doit comporter au moins 8 caractères"
+    }
+  }
+}

@@ -1,28 +1,57 @@
-import express from 'express';
+import 'reflect-metadata';
+import express, { Express } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import connectDB from './config/db';
 import { RouteRegistry } from './routes/Routes';
-import { csrfMiddleware } from './middlewares/csrf';
+import connectDB from './config/DatabaseConfig';
+import { logger } from './config/Logger';
 
 dotenv.config();
 
-const app = express();
-app.set('trust proxy', true);
-const PORT = process.env.PORT || 5000;
+export class Server {
+    public app: Express;
+    private port: number;
 
-const allowed = (process.env.CORS_ORIGIN || '').split(',').map(s => s.trim()).filter(Boolean);
-app.use(cors({
-    origin: allowed.length ? allowed : true,
-    credentials: true,
-}));
+    constructor(port?: number) {
+        this.app = express();
+        this.port = port || Number(process.env.PORT) || 5000;
 
-app.use(express.json());
-connectDB();
+        this.initializeMiddlewares();
+        this.initializeDatabase();
+        this.initializeRoutes();
+    }
 
-const routeRegistry = new RouteRegistry();
-routeRegistry.registerRoutes(app);
+    private initializeMiddlewares() {
+        this.app.set('trust proxy', true);
 
-app.listen(PORT, () => {
-    console.log(`API listening on ${PORT}`);
-});
+        const allowedOrigins = (process.env.CORS_ORIGIN || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
+
+        this.app.use(cors({
+            origin: allowedOrigins.length ? allowedOrigins : true,
+            credentials: true,
+        }));
+
+        this.app.use(express.json());
+    }
+
+    private async initializeDatabase() {
+        await connectDB();
+    }
+
+    private initializeRoutes() {
+        const routeRegistry = new RouteRegistry();
+        routeRegistry.registerRoutes(this.app);
+    }
+
+    public listen() {
+        this.app.listen(this.port, () => {
+            logger.info(`API listening on port ${this.port}`);
+        });
+    }
+}
+
+const server = new Server();
+server.listen();

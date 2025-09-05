@@ -1,45 +1,40 @@
-// controllers/UserController.ts
-import { Controller, Get, Post, Put, Delete, Body, Param, QueryParam } from 'routing-controllers';
+import { Controller, Get, Post, Put, Delete, Body, Param, HttpError } from 'routing-controllers';
+import { User, UserModel } from '../models/User';
+import serialize from '../utilities/Serializer';
 
 @Controller('/users')
 export class UserController {
 
     @Get('/')
-    getAll(@QueryParam('page') page: number = 1, @QueryParam('limit') limit: number = 10) {
-        return {
-            message: 'Get all users',
-            pagination: { page, limit }
-        };
+    async getAll() {
+        const users = await UserModel.find().select('-password').lean();
+        return serialize(users);
     }
 
     @Get('/:id')
-    getOne(@Param('id') id: string) {
-        return {
-            message: `Get user ${id}`,
-            user: { id, name: 'John Doe', email: 'john@example.com' }
-        };
+    async getOne(@Param('id') id: string) {
+        const user = await UserModel.findById(id).select('-password').lean();
+        if (!user) return { message: `User with id ${id} not found` };
+        return serialize(user);
     }
 
     @Post('/')
-    create(@Body() userData: any) {
-        return {
-            message: 'User created successfully',
-            data: userData
-        };
+    async create(@Body() userData: Partial<User>) {
+        const user = await UserModel.create(userData);
+        return { message: 'User created successfully', user: serialize(user) };
     }
 
     @Put('/:id')
-    update(@Param('id') id: string, @Body() userData: any) {
-        return {
-            message: `User ${id} updated successfully`,
-            data: userData
-        };
+    async update(@Param('id') id: string, @Body() userData: Partial<User>) {
+        const user = await UserModel.findByIdAndUpdate(id, userData, { new: true, runValidators: true }).select('-password');
+        if (!user) return { message: `User with id ${id} not found` };
+        return { message: `User ${id} updated successfully`, data: user };
     }
 
     @Delete('/:id')
-    remove(@Param('id') id: string) {
-        return {
-            message: `User ${id} deleted successfully`
-        };
+    async remove(@Param('id') id: string) {
+        const user = await UserModel.findByIdAndDelete(id).select('-password');
+        if (!user) return { message: `User with id ${id} not found` };
+        return { message: `User ${id} deleted successfully` };
     }
 }
