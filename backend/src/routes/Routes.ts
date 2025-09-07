@@ -1,6 +1,6 @@
-import { Express } from 'express';
+import { Express, Request } from 'express';
 import { UserController } from "../controllers/UserController";
-import { useExpressServer, RoutingControllersOptions } from 'routing-controllers';
+import { useExpressServer, RoutingControllersOptions, getMetadataArgsStorage } from 'routing-controllers';
 import { PostController } from '../controllers/PostController';
 import { CsrfMiddleware } from '../middlewares/CsrfMiddleware';
 import { HomeController } from '../controllers/HomeController';
@@ -8,6 +8,8 @@ import { MongooseValidationErrorHandler } from '../errors/MongooseValidationHand
 import { logger } from "../config/Logger";
 import { GlobalExceptionHandler } from '../errors/GlobalExceptionHandler';
 import { I18nMiddleware } from '../middlewares/I18nMiddleware';
+import { routingControllersToSpec } from 'routing-controllers-openapi';
+import swaggerUi from 'swagger-ui-express';
 
 export class RouteRegistry {
     private controllers: Function[] = [
@@ -37,6 +39,21 @@ export class RouteRegistry {
     public registerRoutes(app: Express) {
         useExpressServer(app, this.options);
         logger.debug(`Registered ${this.controllers.length} controller(s)`);
+
+        // Refacto into its own function and only call it in dev (process.env.NODE_ENV === 'development')
+        const storage = getMetadataArgsStorage();
+        const spec = routingControllersToSpec(storage, { routePrefix: '/api' }, {
+            info: { title: process.env.APP_NAME || 'API', version: '1.0.0' },
+        });
+
+        app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(spec, {
+            swaggerOptions: {
+                requestInterceptor: (req: Request) => {
+                    req.headers['x-swagger-ui'] = 'true';
+                    return req;
+                }
+            }
+        }));
     }
 
     public addControllers(controllers: Function[]): RouteRegistry {

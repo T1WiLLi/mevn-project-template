@@ -6,6 +6,10 @@ import crypto from 'crypto';
 @Middleware({ type: 'before' })
 export class CsrfMiddleware implements ExpressMiddlewareInterface {
     use(req: Request, res: Response, next: NextFunction) {
+        if (req.headers['x-swagger-ui'] === 'true' && process.env.NODE_ENV === 'development') {
+            return next();
+        }
+
         const cookies = new Cookies(req, res);
         const method = req.method.toUpperCase();
 
