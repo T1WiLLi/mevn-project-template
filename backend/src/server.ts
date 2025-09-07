@@ -5,6 +5,10 @@ import cors from 'cors';
 import { RouteRegistry } from './routes/Routes';
 import connectDB from './config/DatabaseConfig';
 import { logger } from './config/Logger';
+import { AuthManager } from './auth/AuthManager';
+import { JwtProvider } from './auth/provider/JwtProvider';
+import Container from 'typedi';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -19,6 +23,7 @@ export class Server {
         this.initializeMiddlewares();
         this.initializeDatabase();
         this.initializeRoutes();
+        this.registerAuthentificationProvider();
     }
 
     private initializeMiddlewares() {
@@ -35,6 +40,7 @@ export class Server {
         }));
 
         this.app.use(express.json());
+        this.app.use(cookieParser());
     }
 
     private async initializeDatabase() {
@@ -44,6 +50,10 @@ export class Server {
     private initializeRoutes() {
         const routeRegistry = new RouteRegistry();
         routeRegistry.registerRoutes(this.app);
+    }
+
+    private registerAuthentificationProvider() {
+        AuthManager.registerProvider(Container.get(JwtProvider));
     }
 
     public listen() {

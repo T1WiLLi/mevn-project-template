@@ -13,7 +13,7 @@ export class MongooseValidationErrorHandler implements ExpressErrorMiddlewareInt
         if (error instanceof mongoose.Error.ValidationError) {
             logger.error('Mongoose validation error:', error);
 
-            const errors = Object.fromEntries(
+            const errors = Object.fromEntries( // We need to translate the error key at runtime to be able to change language and have direct update
                 Object.entries(error.errors).map(([key, value]: any) => {
                     const translationKey = value.message;
                     const translatedMessage = i18n.exists(translationKey)

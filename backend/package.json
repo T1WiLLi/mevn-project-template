@@ -24,8 +24,10 @@
   "license": "ISC",
   "dependencies": {
     "@typegoose/typegoose": "^12.19.0",
+    "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
+    "cookie-parser": "^1.4.7",
     "cookies": "^0.9.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
@@ -36,13 +38,18 @@
     "mongoose": "^8.18.0",
     "reflect-metadata": "^0.2.2",
     "routing-controllers": "^0.11.3",
+    "typedi": "^0.10.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.9",
     "@types/cookies": "^0.9.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.3.0",
+    "jsonwebtoken": "^9.0.2",
     "nodemon": "^3.1.10",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.2"
