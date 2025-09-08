@@ -20,7 +20,6 @@ export class Server {
 
         this.initializeHeaders();
         this.initializeMiddlewares();
-        this.initializeDatabase();
         this.initializeRoutes();
     }
 
@@ -40,11 +39,6 @@ export class Server {
         this.app.use(express.json());
     }
 
-    private async initializeDatabase() {
-        await connectDB();
-        await connectRedis();
-    }
-
     private initializeRoutes() {
         const routeRegistry = new RouteRegistry();
         routeRegistry.registerRoutes(this.app);
@@ -54,7 +48,7 @@ export class Server {
         this.app.disable('x-powered-by');
         if (process.env.NODE_ENV === 'development') {
             this.app.use(helmet({
-                contentSecurityPolicy: false, // Relax for HMR script to be injected by VITE Server.
+                contentSecurityPolicy: false, // Relax for HMR (VITE SERVER)
                 crossOriginEmbedderPolicy: false,
             }));
         } else {
@@ -69,5 +63,17 @@ export class Server {
     }
 }
 
-const server = new Server();
-server.listen();
+async function bootstrap() {
+    try {
+        await connectDB();
+        await connectRedis();
+
+        const server = new Server();
+        server.listen();
+    } catch (err) {
+        console.error('Failed to start server', err);
+        process.exit(1);
+    }
+}
+
+bootstrap();

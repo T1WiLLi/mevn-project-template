@@ -10,6 +10,7 @@ import { GlobalExceptionHandler } from '../errors/GlobalExceptionHandler';
 import { I18nMiddleware } from '../middlewares/I18nMiddleware';
 import { routingControllersToSpec } from 'routing-controllers-openapi';
 import swaggerUi from 'swagger-ui-express';
+import { RateLimitMiddleware } from '../middlewares/RateLimitMiddleware';
 
 export class RouteRegistry {
     private controllers: Function[] = [
@@ -21,6 +22,7 @@ export class RouteRegistry {
 
     // The order here is important!
     private middlewares: Function[] = [
+        RateLimitMiddleware,
         CsrfMiddleware,
         I18nMiddleware,
         MongooseValidationErrorHandler,
@@ -38,22 +40,8 @@ export class RouteRegistry {
 
     public registerRoutes(app: Express) {
         useExpressServer(app, this.options);
+        this.initSwagger(app);
         logger.debug(`Registered ${this.controllers.length} controller(s)`);
-
-        // Refacto into its own function and only call it in dev (process.env.NODE_ENV === 'development')
-        const storage = getMetadataArgsStorage();
-        const spec = routingControllersToSpec(storage, { routePrefix: '/api' }, {
-            info: { title: process.env.APP_NAME || 'API', version: '1.0.0' },
-        });
-
-        app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(spec, {
-            swaggerOptions: {
-                requestInterceptor: (req: Request) => {
-                    req.headers['x-swagger-ui'] = 'true';
-                    return req;
-                }
-            }
-        }));
     }
 
     public addControllers(controllers: Function[]): RouteRegistry {
@@ -64,5 +52,23 @@ export class RouteRegistry {
     public setOptions(options: Partial<RoutingControllersOptions>): RouteRegistry {
         this.options = { ...this.options, ...options };
         return this;
+    }
+
+    private initSwagger(app: Express) {
+        if (process.env.NODE_ENV === 'development') {
+            const storage = getMetadataArgsStorage();
+            const spec = routingControllersToSpec(storage, { routePrefix: '/api' }, {
+                info: { title: process.env.APP_NAME || 'API', version: '1.0.0' },
+            });
+
+            app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(spec, {
+                swaggerOptions: {
+                    requestInterceptor: (req: Request) => {
+                        req.headers['x-swagger-ui'] = 'true';
+                        return req;
+                    }
+                }
+            }));
+        }
     }
 }
