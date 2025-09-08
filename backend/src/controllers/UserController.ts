@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, HttpError } from 'routing-controllers';
+import { Controller, Get, Post, Put, Delete, Body, Param } from 'routing-controllers';
 import { User, UserModel } from '../models/User';
 import serialize from '../utilities/Serializer';
 

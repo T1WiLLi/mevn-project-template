@@ -10,7 +10,7 @@ import connectRedis from './config/RedisConfig';
 
 dotenv.config();
 
-export class Server {
+class Server {
     public app: Express;
     private port: number;
 

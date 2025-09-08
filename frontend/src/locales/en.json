@@ -9,7 +9,8 @@
   "error": {
     "fetchUsers": "An error happened while fetching the users",
     "createUser": "Failed to create user",
-    "deleteUser": "Failed to delete user"
+    "deleteUser": "Failed to delete user",
+    "validationTitle": "Please fix the following errors:"
   },
   "title": {
     "welcome": "Welcome MEVN-Template",

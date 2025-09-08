@@ -44,16 +44,6 @@ export class RouteRegistry {
         logger.debug(`Registered ${this.controllers.length} controller(s)`);
     }
 
-    public addControllers(controllers: Function[]): RouteRegistry {
-        this.controllers.push(...controllers);
-        return this;
-    }
-
-    public setOptions(options: Partial<RoutingControllersOptions>): RouteRegistry {
-        this.options = { ...this.options, ...options };
-        return this;
-    }
-
     private initSwagger(app: Express) {
         if (process.env.NODE_ENV === 'development') {
             const storage = getMetadataArgsStorage();

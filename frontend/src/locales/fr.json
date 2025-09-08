@@ -7,7 +7,8 @@
   "error": {
     "createUser": "Échec de la création de l'utilisateur",
     "deleteUser": "Échec de la suppression de l'utilisateur",
-    "fetchUsers": "Une erreur s'est produite tout en récupérant les utilisateurs"
+    "fetchUsers": "Une erreur s'est produite tout en récupérant les utilisateurs",
+    "validationTitle": "Veuillez corriger les erreurs suivantes:"
   },
   "form": {
     "name": "Nom",

@@ -6,6 +6,8 @@ import fr from './locales/fr.json';
 import { createI18n } from 'vue-i18n';
 import { getCookie } from './utils/util';
 
+import './styles/global.css'; // Import global style + tailwindcss
+
 const userLocale = getCookie('_lang') || 'en';
 
 const i18n = createI18n({
