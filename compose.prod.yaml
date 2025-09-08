@@ -37,5 +37,13 @@ services:
     volumes:
       - mongo_data:/data/db
 
+  redis:
+    image: redis:7-alpine
+    container_name: mevn-redis
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
 volumes:
   mongo_data:

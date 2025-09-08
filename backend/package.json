@@ -35,6 +35,7 @@
     "i18next-fs-backend": "^2.6.0",
     "i18next-http-middleware": "^3.8.0",
     "mongoose": "^8.18.0",
+    "redis": "^5.8.2",
     "reflect-metadata": "^0.2.2",
     "routing-controllers": "^0.11.3",
     "routing-controllers-openapi": "^5.0.0",

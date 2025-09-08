@@ -6,6 +6,7 @@ import { RouteRegistry } from './routes/Routes';
 import connectDB from './config/DatabaseConfig';
 import { logger } from './config/Logger';
 import helmet from 'helmet';
+import connectRedis from './config/RedisConfig';
 
 dotenv.config();
 
@@ -41,6 +42,7 @@ export class Server {
 
     private async initializeDatabase() {
         await connectDB();
+        await connectRedis();
     }
 
     private initializeRoutes() {

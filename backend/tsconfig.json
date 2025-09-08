@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "commonjs",
+    "target": "ES2024",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "allowJs": true,
