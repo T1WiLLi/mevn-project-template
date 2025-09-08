@@ -5,6 +5,7 @@ import cors from 'cors';
 import { RouteRegistry } from './routes/Routes';
 import connectDB from './config/DatabaseConfig';
 import { logger } from './config/Logger';
+import helmet from 'helmet';
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ export class Server {
         this.app = express();
         this.port = port || Number(process.env.PORT) || 5000;
 
+        this.initializeHeaders();
         this.initializeMiddlewares();
         this.initializeDatabase();
         this.initializeRoutes();
@@ -44,6 +46,18 @@ export class Server {
     private initializeRoutes() {
         const routeRegistry = new RouteRegistry();
         routeRegistry.registerRoutes(this.app);
+    }
+
+    private initializeHeaders() {
+        this.app.disable('x-powered-by');
+        if (process.env.NODE_ENV === 'development') {
+            this.app.use(helmet({
+                contentSecurityPolicy: false, // Relax for HMR script to be injected by VITE Server.
+                crossOriginEmbedderPolicy: false,
+            }));
+        } else {
+            this.app.use(helmet());
+        }
     }
 
     public listen() {
