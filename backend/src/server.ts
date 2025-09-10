@@ -6,7 +6,9 @@ import { RouteRegistry } from './routes/Routes';
 import connectDB from './config/DatabaseConfig';
 import { logger } from './config/Logger';
 import helmet from 'helmet';
-import connectRedis from './config/RedisConfig';
+import connectRedis, { redisClient } from './config/RedisConfig';
+import { addCleanupCallback } from './utilities/Hook';
+import mongoose from 'mongoose';
 
 dotenv.config();
 
@@ -21,6 +23,13 @@ class Server {
         this.initializeHeaders();
         this.initializeMiddlewares();
         this.initializeRoutes();
+        this.initializeProcessHooks();
+    }
+
+    public listen() {
+        this.app.listen(this.port, () => {
+            logger.info(`API listening on port ${this.port}`);
+        });
     }
 
     private initializeMiddlewares() {
@@ -39,11 +48,6 @@ class Server {
         this.app.use(express.json());
     }
 
-    private initializeRoutes() {
-        const routeRegistry = new RouteRegistry();
-        routeRegistry.registerRoutes(this.app);
-    }
-
     private initializeHeaders() {
         this.app.disable('x-powered-by');
         if (process.env.NODE_ENV === 'development') {
@@ -56,9 +60,17 @@ class Server {
         }
     }
 
-    public listen() {
-        this.app.listen(this.port, () => {
-            logger.info(`API listening on port ${this.port}`);
+    private initializeRoutes() {
+        const routeRegistry = new RouteRegistry();
+        routeRegistry.registerRoutes(this.app);
+    }
+
+    private initializeProcessHooks() {
+        addCleanupCallback(async () => {
+            if (mongoose.connection.readyState !== 0) {
+                await mongoose.disconnect();
+            }
+            redisClient.destroy();
         });
     }
 }
