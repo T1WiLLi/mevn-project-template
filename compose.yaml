@@ -53,6 +53,16 @@ services:
       - frontend
       - backend
 
+  mailcatch:
+    image: sj26/mailcatcher:latest
+    container_name: mevn-mailcatch-dev
+    restart: unless-stopped
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+    environment:
+      - MAILCATCHER_IP=0.0.0.0
+
   mongo:
     image: mongo:6.0
     container_name: mevn-mongo-dev
